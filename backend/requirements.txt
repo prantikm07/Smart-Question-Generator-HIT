@@ -1,0 +1,8 @@
+Flask
+flask-cors
+chromadb
+sentence-transformers
+langchain-groq
+langchain-core
+reportlab
+python-dotenv

@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HIT Exam Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --navy: #0a1628;
+            --navy2: #112240;
+            --gold: #c9a84c;
+            --gold2: #e8c97a;
+            --cream: #f5f0e8;
+            --text: #1a2340;
+            --muted: #6b7a99;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--navy);
+            color: var(--white);
+            overflow-x: hidden;
+        }
+
+        /* ─── LANDING PAGE ─── */
+        #landing {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: var(--navy);
+            overflow: hidden;
+        }
+
+        .bg-grid {
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(201,168,76,0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(201,168,76,0.07) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridDrift 20s linear infinite;
+        }
+        @keyframes gridDrift { from { background-position: 0 0; } to { background-position: 60px 60px; } }
+
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.25;
+        }
+        .orb1 { width: 500px; height: 500px; background: var(--gold); top: -150px; right: -100px; }
+        .orb2 { width: 350px; height: 350px; background: #3a6bc4; bottom: -100px; left: -80px; }
+
+        .landing-content {
+            position: relative; z-index: 2;
+            text-align: center;
+            padding: 40px 20px;
+            animation: fadeUp 0.8s ease both;
+        }
+        @keyframes fadeUp { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+
+        .institute-badge {
+            display: inline-block;
+            border: 1px solid rgba(201,168,76,0.4);
+            color: var(--gold2);
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            padding: 6px 20px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            background: rgba(201,168,76,0.08);
+        }
+
+        .landing-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 900;
+            line-height: 1.1;
+            color: var(--white);
+            margin-bottom: 16px;
+        }
+        .landing-title span { color: var(--gold2); }
+
+        .landing-sub {
+            font-size: 1.1rem;
+            color: rgba(255,255,255,0.55);
+            max-width: 480px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+        }
+
+        .topics-grid {
+            display: flex; flex-wrap: wrap; gap: 10px;
+            justify-content: center;
+            margin-bottom: 50px;
+            max-width: 600px;
+            margin-left: auto; margin-right: auto;
+        }
+        .topic-chip {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(201,168,76,0.25);
+            color: var(--gold2);
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .topic-chip:hover {
+            background: rgba(201,168,76,0.15);
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+
+        .server-status {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 30px;
+        }
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #aaa;
+            transition: background 0.4s;
+        }
+        .status-dot.ok { background: #4caf50; box-shadow: 0 0 8px #4caf50; }
+        .status-dot.fail { background: #f44336; }
+        .status-dot.connecting { background: var(--gold); animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
+
+        .cta-btn {
+            background: linear-gradient(135deg, var(--gold), var(--gold2));
+            color: var(--navy);
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            padding: 16px 48px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 8px 30px rgba(201,168,76,0.35);
+            letter-spacing: 0.5px;
+        }
+        .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(201,168,76,0.5); }
+        .cta-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* ─── APP PAGE ─── */
+        #app {
+            display: none;
+            min-height: 100vh;
+            background: var(--cream);
+            color: var(--text);
+        }
+
+        .app-topbar {
+            background: var(--navy);
+            padding: 14px 32px;
+            display: flex; align-items: center; gap: 16px;
+        }
+        .app-topbar h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            color: var(--gold2);
+        }
+        .back-btn {
+            background: transparent;
+            border: 1px solid rgba(201,168,76,0.3);
+            color: var(--gold2);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        .back-btn:hover { background: rgba(201,168,76,0.1); }
+
+        .app-body {
+            display: flex;
+            gap: 0;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 28px 24px;
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        /* ─── SIDEBAR ─── */
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0;
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 24px;
+        }
+        .sidebar h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 20px;
+            color: var(--navy);
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--cream);
+        }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 7px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--text);
+            background: #fafafa;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+        .form-group input:focus, .form-group select:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.12);
+            background: white;
+        }
+
+        .topics-note {
+            background: #fffbf0;
+            border: 1px solid rgba(201,168,76,0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 18px;
+            font-size: 12px;
+            color: #7a6030;
+        }
+        .topics-note strong { display: block; margin-bottom: 6px; color: #5a4010; }
+        .topics-note span {
+            display: inline-block;
+            background: rgba(201,168,76,0.15);
+            border-radius: 4px;
+            padding: 2px 7px;
+            margin: 2px;
+        }
+
+        .gen-btn {
+            width: 100%;
+            background: linear-gradient(135deg, var(--navy), var(--navy2));
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            margin-top: 4px;
+        }
+        .gen-btn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+        .gen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .dl-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #2e7d32, #43a047);
+            color: white;
+            font-family: 'DM Sans', sans-serif;
+            font-weight: 600;
+            font-size: 15px;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            margin-top: 10px;
+            display: none;
+        }
+        .dl-btn:hover { opacity: 0.88; }
+
+        .loading-bar {
+            display: none;
+            margin-top: 14px;
+            text-align: center;
+        }
+        .loading-bar p { font-size: 13px; color: var(--muted); margin-top: 10px; }
+        .spinner {
+            width: 32px; height: 32px;
+            border: 3px solid #e2e8f0;
+            border-top-color: var(--navy);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ─── PAPER AREA ─── */
+        .paper-area { flex: 1; }
+
+        .placeholder-card {
+            background: white;
+            border-radius: 16px;
+            padding: 80px 40px;
+            text-align: center;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            color: var(--muted);
+        }
+        .placeholder-card .icon { font-size: 56px; margin-bottom: 16px; }
+        .placeholder-card h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: var(--text); margin-bottom: 8px; }
+
+        /* ─── PAPER CONTAINER (print-safe) ─── */
+        .paper-container {
+            background: white;
+            width: 210mm;
+            padding: 20mm;
+            box-shadow: 0 0 30px rgba(0,0,0,0.12);
+            border-radius: 4px;
+            display: none;
+        }
+
+        .paper-header { text-align: center; border-bottom: 2px solid #1a2340; padding-bottom: 12px; margin-bottom: 18px; }
+        .paper-header h1 { font-size: 17px; font-family: 'DM Sans', sans-serif; font-weight: 700; }
+        .paper-header h2 { font-size: 15px; font-family: 'DM Sans', sans-serif; }
+
+        .paper-meta { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 16px; font-size: 13px; }
+
+        .paper-instructions { text-align: center; font-style: italic; font-size: 12px; color: #555; margin-bottom: 20px; line-height: 1.6; }
+
+        .section-title {
+            text-align: center;
+            font-weight: 700;
+            text-decoration: underline;
+            margin: 24px 0 12px;
+            font-size: 14px;
+            page-break-after: avoid;
+        }
+
+        /* KEY FIX: replace pre-wrap with proper paragraph rendering */
+        .content-box {
+            font-size: 13px;
+            line-height: 1.75;
+            color: #111;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .content-box .q-block {
+            margin-bottom: 14px;
+            page-break-inside: avoid;
+        }
+        .content-box .q-block p { margin: 0; }
+        .content-box .q-block .options { margin-left: 16px; }
+
+        @media print {
+            .paper-container { box-shadow: none; }
+            .q-block { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ LANDING PAGE ═══════════════════════════ -->
+<div id="landing">
+    <div class="bg-grid"></div>
+    <div class="glow-orb orb1"></div>
+    <div class="glow-orb orb2"></div>
+
+    <div class="landing-content">
+        <div class="institute-badge">Haldia Institute of Technology</div>
+
+        <h1 class="landing-title">Smart Exam<br><span>Question Generator</span></h1>
+        <p class="landing-sub">AI-powered question papers from your course material — structured, formatted, ready to print.</p>
+
+        <div class="topics-grid">
+            <div class="topic-chip">📘 DBMS</div>
+            <div class="topic-chip">🌳 DSA</div>
+            <div class="topic-chip">☕ OOPS</div>
+            <div class="topic-chip">💻 Operating Systems</div>
+            <div class="topic-chip">🛠 Software Engineering</div>
+        </div>
+
+        <div class="server-status">
+            <div class="status-dot connecting" id="landingDot"></div>
+            <span id="landingStatus">Connecting to server…</span>
+        </div>
+
+        <button class="cta-btn" id="enterBtn" disabled onclick="enterApp()">
+            Generate My Paper →
+        </button>
+    </div>
+</div>
+
+<!-- ═══════════════════════════ APP PAGE ═══════════════════════════ -->
+<div id="app">
+    <div class="app-topbar">
+        <button class="back-btn" onclick="goBack()">← Back</button>
+        <h1>HIT Exam Generator</h1>
+    </div>
+
+    <div class="app-body">
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <h2>Paper Blueprint</h2>
+
+            <div class="topics-note">
+                <strong>📚 Available Topics</strong>
+                <span>DBMS</span><span>DSA</span><span>OOPS</span><span>OS</span><span>SE</span>
+            </div>
+
+            <div class="form-group">
+                <label>Subject / Topic</label>
+                <select id="subject">
+                    <option value="">— Select a subject —</option>
+                    <option value="Database Management System">DBMS</option>
+                    <option value="Data Structures and Algorithms">DSA</option>
+                    <option value="Object Oriented Programming and UML">OOPS / UML</option>
+                    <option value="Operating Systems">Operating Systems</option>
+                    <option value="Software Engineering">Software Engineering</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Total Marks</label>
+                <input type="number" id="totalMarks" placeholder="e.g. 70">
+            </div>
+
+            <div class="form-group">
+                <label>MCQs (1 Mark each)</label>
+                <input type="number" id="mcqCount" placeholder="e.g. 10" min="1" max="20">
+            </div>
+
+            <div class="form-group">
+                <label>Short Questions (5 Marks)</label>
+                <input type="number" id="shortCount" placeholder="e.g. 3" min="1" max="10">
+            </div>
+
+            <div class="form-group">
+                <label>Long Questions (10 Marks)</label>
+                <input type="number" id="longCount" placeholder="e.g. 4" min="1" max="8">
+            </div>
+
+            <button class="gen-btn" id="genBtn" onclick="generatePaper()">Generate Paper</button>
+
+            <div class="loading-bar" id="loadingBar">
+                <div class="spinner"></div>
+                <p id="loadingMsg">Generating questions…</p>
+            </div>
+
+            <button class="dl-btn" id="dlBtn" onclick="downloadPDF()">⬇ Download PDF</button>
+        </div>
+
+        <!-- PAPER AREA -->
+        <div class="paper-area">
+            <div class="placeholder-card" id="placeholder">
+                <div class="icon">📄</div>
+                <h3>Your question paper will appear here</h3>
+                <p>Select a subject and fill in the blueprint, then click Generate.</p>
+            </div>
+
+            <div id="paper" class="paper-container">
+                <div class="paper-header">
+                    <h1>HALDIA INSTITUTE OF TECHNOLOGY</h1>
+                    <h2 id="paperSubject">SUBJECT NAME</h2>
+                </div>
+                <div class="paper-meta">
+                    <span>Time Allotted: 3 Hours</span>
+                    <span id="paperMarks">Full Marks: 70</span>
+                </div>
+                <div class="paper-instructions">
+                    The figures in the margin indicate full marks.<br>
+                    Candidates are required to give their answers in their own words as far as practicable.
+                </div>
+
+                <div class="section-title">GROUP - A<br>(Multiple Choice Type Questions)</div>
+                <div id="sectionA" class="content-box"></div>
+
+                <div class="section-title">GROUP - B<br>(Short Answer Type Questions)</div>
+                <div id="sectionB" class="content-box"></div>
+
+                <div class="section-title">GROUP - C<br>(Long Answer Type Questions)</div>
+                <div id="sectionC" class="content-box"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ── SERVER PING WITH RETRY ──
+    const SERVER = 'http://127.0.0.1:5000';
+    let serverOk = false;
+
+    async function pingServer(attempt = 1) {
+        const dot = document.getElementById('landingDot');
+        const statusTxt = document.getElementById('landingStatus');
+        const btn = document.getElementById('enterBtn');
+
+        dot.className = 'status-dot connecting';
+        statusTxt.textContent = attempt > 1 ? `Retrying… (attempt ${attempt})` : 'Connecting to server…';
+
+        try {
+            const res = await fetch(`${SERVER}/api/connect`, { signal: AbortSignal.timeout(4000) });
+            if (res.ok) {
+                dot.className = 'status-dot ok';
+                statusTxt.textContent = 'Server connected ✓';
+                btn.disabled = false;
+                serverOk = true;
+                return;
+            }
+        } catch (_) {}
+
+        if (attempt < 5) {
+            setTimeout(() => pingServer(attempt + 1), 2000);
+        } else {
+            dot.className = 'status-dot fail';
+            statusTxt.textContent = 'Server offline — start app.py first';
+            btn.disabled = false; // allow anyway so user can try
+            btn.textContent = 'Try Anyway →';
+        }
+    }
+
+    pingServer();
+
+    function enterApp() {
+        document.getElementById('landing').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+    }
+
+    function goBack() {
+        document.getElementById('app').style.display = 'none';
+        document.getElementById('landing').style.display = 'flex';
+    }
+
+    // ── RENDER TEXT TO CLEAN HTML (fixes PDF crop) ──
+    function renderSection(rawText, containerId) {
+        const box = document.getElementById(containerId);
+        if (!rawText) { box.innerHTML = ''; return; }
+
+        // Split on blank lines or numbered question starts
+        const lines = rawText.split('\n');
+        let html = '';
+        let inBlock = false;
+        let blockHtml = '';
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) {
+                if (inBlock) { html += `<div class="q-block">${blockHtml}</div>`; blockHtml = ''; inBlock = false; }
+                continue;
+            }
+            // Detect question line (starts with number+dot or Q+number)
+            const isQ = /^(\d+\.|Q\d+\.)/i.test(line);
+            if (isQ && inBlock) { html += `<div class="q-block">${blockHtml}</div>`; blockHtml = ''; }
+            inBlock = true;
+            // Detect option lines a) b) c) d)
+            const isOpt = /^[a-d]\)/i.test(line);
+            if (isOpt) {
+                blockHtml += `<div class="options"><p>${escHtml(line)}</p></div>`;
+            } else {
+                blockHtml += `<p>${escHtml(line)}</p>`;
+            }
+        }
+        if (inBlock && blockHtml) html += `<div class="q-block">${blockHtml}</div>`;
+
+        box.innerHTML = html;
+    }
+
+    function escHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ── GENERATE PAPER ──
+    async function generatePaper() {
+        const subject = document.getElementById('subject').value;
+        if (!subject) { alert('Please select a subject first.'); return; }
+
+        const mcq = document.getElementById('mcqCount').value;
+        const sh  = document.getElementById('shortCount').value;
+        const lg  = document.getElementById('longCount').value;
+        const marks = document.getElementById('totalMarks').value || 70;
+
+        if (!mcq || !sh || !lg) { alert('Please fill in all question counts.'); return; }
+
+        document.getElementById('genBtn').disabled = true;
+        document.getElementById('loadingBar').style.display = 'block';
+        document.getElementById('dlBtn').style.display = 'none';
+        document.getElementById('paper').style.display = 'none';
+        document.getElementById('placeholder').style.display = 'block';
+
+        const msgs = ['Fetching context…', 'Building questions…', 'Structuring paper…', 'Almost done…'];
+        let mi = 0;
+        const ticker = setInterval(() => {
+            document.getElementById('loadingMsg').textContent = msgs[mi % msgs.length]; mi++;
+        }, 3000);
+
+        const payload = JSON.stringify({ subject, mcq_count: mcq, short_count: sh, long_count: lg });
+        let data = null;
+
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                document.getElementById('loadingMsg').textContent = attempt > 1 ? `Retrying… (attempt ${attempt})` : 'Fetching context…';
+                const res = await fetch(`${SERVER}/api/generate-paper`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: payload
+                });
+                data = await res.json();
+                break; // success
+            } catch (err) {
+                if (attempt === 3) {
+                    alert('Connection failed after 3 attempts. Make sure app.py is running on port 5000.');
+                    clearInterval(ticker);
+                    document.getElementById('loadingBar').style.display = 'none';
+                    document.getElementById('genBtn').disabled = false;
+                    return;
+                }
+                await new Promise(r => setTimeout(r, 3000));
+            }
+        }
+
+        if (data.error) {
+            alert('Backend Error: ' + data.error);
+        } else {
+            document.getElementById('paperSubject').innerText = subject.toUpperCase();
+            document.getElementById('paperMarks').innerText = 'Full Marks: ' + marks;
+
+            renderSection(data.section_a, 'sectionA');
+            renderSection(data.section_b, 'sectionB');
+            renderSection(data.section_c, 'sectionC');
+
+            document.getElementById('placeholder').style.display = 'none';
+            document.getElementById('paper').style.display = 'block';
+            document.getElementById('dlBtn').style.display = 'block';
+        }
+
+        clearInterval(ticker);
+        document.getElementById('loadingBar').style.display = 'none';
+        document.getElementById('genBtn').disabled = false;
+    }
+
+    // ── DOWNLOAD PDF via ReportLab backend ──
+    async function downloadPDF() {
+        const btn = document.getElementById('dlBtn');
+        btn.textContent = 'Generating PDF…';
+        btn.disabled = true;
+        try {
+            const res = await fetch(`${SERVER}/api/generate-pdf`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subject: document.getElementById('subject').value,
+                    marks:   document.getElementById('totalMarks').value || 70,
+                    section_a: document.getElementById('sectionA').innerText,
+                    section_b: document.getElementById('sectionB').innerText,
+                    section_c: document.getElementById('sectionC').innerText
+                })
+            });
+            if (!res.ok) throw new Error('PDF generation failed');
+            const blob = await res.blob();
+            const url  = URL.createObjectURL(blob);
+            const a    = document.createElement('a');
+            a.href     = url;
+            a.download = document.getElementById('subject').value.replace(/\s+/g,'_') + '_Question_Paper.pdf';
+            a.click();
+            URL.revokeObjectURL(url);
+        } catch(e) {
+            alert('PDF error: ' + e.message);
+        }
+        btn.textContent = '⬇ Download PDF';
+        btn.disabled = false;
+    }
+</script>
+</body>
+</html>
