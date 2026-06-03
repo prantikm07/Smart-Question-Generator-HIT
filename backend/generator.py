@@ -27,7 +27,7 @@ CONTEXT: {context}
 
 RULES:
 1. Only generate questions about '{subject}'. Ignore any other subject in context.
-2. section_a: EXACTLY {mcq_count} MCQs. EVERY question MUST have exactly 4 options labeled a) b) c) d) on separate lines. NO EXCEPTIONS.
+2. section_a: EXACTLY {mcq_count} MCQs. not more not less mcqs. EVERY question MUST have exactly 4 options labeled a) b) c) d) on separate lines. NO EXCEPTIONS.
 3. section_b: EXACTLY {short_count} short-answer questions (no options).
 4. section_c: EXACTLY {long_count} long-answer questions (no options).
 5. Do NOT include answers, hints, or explanations anywhere.
